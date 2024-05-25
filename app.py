@@ -20,7 +20,7 @@ def upload_file():
     
     if file:
         image_data = file.read()
-        result_img = analyze_image(image_data)
+        result_img, _ = analyze_image(image_data)
 
         if result_img is None:
             return jsonify({"error": "Image processing failed"})
@@ -30,6 +30,24 @@ def upload_file():
         img_bytes = BytesIO(img_encoded.tobytes())
 
         return send_file(img_bytes, mimetype='image/jpeg')
+
+@app.route('/analyze', methods=['POST'])
+def analyze_image_endpoint():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"})
+    
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"})
+    
+    if file:
+        image_data = file.read()
+        result_img, analysis_data = analyze_image(image_data)
+
+        if result_img is None:
+            return jsonify({"error": "Image processing failed"})
+
+        return jsonify(analysis_data)
 
 if __name__ == '__main__':
     app.run(debug=True)

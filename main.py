@@ -96,6 +96,7 @@ def analyze_image(image_data):
     depth_map = estimate_depth(img, midas_model, midas_transform, device)
 
     # 각 객체의 3D 크기 계산 및 출력
+    analysis_data = []
     for i, (box, class_id) in enumerate(zip(boxes, classes)):
         width, height, depth, x1, y1, x2, y2 = calculate_object_dimensions(box, depth_map)
         class_name = results[0].names[int(class_id)]
@@ -104,6 +105,14 @@ def analyze_image(image_data):
         # 콘솔에 로그 출력
         print(f"Object: {class_name}, Width: {width}, Height: {height}, Depth: {depth:.2f}")
 
+        # 데이터 저장
+        analysis_data.append({
+            "class_name": class_name,
+            "width": width,
+            "height": height,
+            "depth": depth,
+        })
+
         # 랜덤 색상 생성
         color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
@@ -111,5 +120,5 @@ def analyze_image(image_data):
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
         cv2.putText(img, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)  # 텍스트 크기 키움
 
-    # 결과 이미지 반환
-    return img
+    # 결과 이미지 및 분석 데이터 반환
+    return img, analysis_data
