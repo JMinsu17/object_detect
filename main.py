@@ -9,7 +9,6 @@ min_area = 1000
 conf_threshold = 0.1  # 신뢰도 임계값
 iou_threshold = 0.7  # IoU 임계값 낮을수록 큰걸 인식 높을수록 자잘한것도 같이 인식
 model_path = "model/yolov8l-oiv7.pt"
-image_path = "images/4.jpg"  # 업로드한 이미지 경로
 
 # YOLO 모델 로드 함수
 def load_yolo_model():
@@ -71,8 +70,8 @@ def filter_large_objects(boxes, classes, min_area):
             filtered_classes.append(cls)
     return np.array(filtered_boxes), np.array(filtered_classes)
 
-# 메인 함수
-def main(image_path):
+# 메인 분석 함수
+def analyze_image(image_data):
     # 모델 로드
     yolo_model = load_yolo_model()
     midas_model, midas_transform = load_midas_model()
@@ -82,10 +81,10 @@ def main(image_path):
     midas_model.to(device)
 
     # 이미지 로드
-    img = cv2.imread(image_path)
+    img = cv2.imdecode(np.frombuffer(image_data, np.uint8), cv2.IMREAD_COLOR)
     if img is None:
         print("이미지를 로드할 수 없습니다.")
-        return
+        return None
 
     # 객체 인식
     boxes, classes, results = detect_objects(img, yolo_model, conf_threshold, iou_threshold)
@@ -112,11 +111,5 @@ def main(image_path):
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
         cv2.putText(img, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)  # 텍스트 크기 키움
 
-    # 결과 이미지 출력
-    plt.figure(figsize=(12, 8))
-    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    plt.axis('off')
-    plt.show()
-
-# 이미지 경로 설정 및 메인 함수 실행
-main(image_path)
+    # 결과 이미지 반환
+    return img

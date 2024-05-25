@@ -2,37 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Furniture Analyzer</title>
-    <style>
-        #result {
-            white-space: pre-wrap;
-            margin-top: 20px;
-        }
-        #annotatedImage {
-            margin-top: 20px;
-            max-width: 100%;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Analysis</title>
 </head>
 <body>
-    <h1>Upload an image to analyze furniture</h1>
-    <form id="uploadForm" action="/analyze" method="post" enctype="multipart/form-data">
-        <input type="file" name="image" accept="image/*">
-        <button type="submit">Analyze</button>
+    <h1>Image Analysis</h1>
+    <form id="upload-form" enctype="multipart/form-data">
+        <input type="file" id="file-input" name="file" accept="image/*">
+        <button type="submit">Upload and Analyze</button>
     </form>
-    <div id="result"></div>
-    <img id="annotatedImage" src="" alt="Annotated Image">
+    <div id="result">
+        <h2>Result:</h2>
+        <img id="result-image" src="" alt="Result Image" style="display: none;">
+    </div>
     <script>
-        document.querySelector('#uploadForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const response = await fetch('/analyze', {
+        document.getElementById('upload-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const fileInput = document.getElementById('file-input');
+            if (!fileInput.files.length) {
+                alert('Please select an image file to upload.');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            const response = await fetch('/upload', {
                 method: 'POST',
                 body: formData
             });
-            const result = await response.json();
-            document.getElementById('result').textContent = JSON.stringify(result.furniture_info, null, 2);
-            document.getElementById('annotatedImage').src = result.annotated_image_url;
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const resultImage = document.getElementById('result-image');
+                resultImage.src = url;
+                resultImage.style.display = 'block';
+            } else {
+                alert('Image analysis failed. Please try again.');
+            }
         });
     </script>
 </body>
